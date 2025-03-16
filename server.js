@@ -2,6 +2,7 @@ require("dotenv").config();
 const { Telegraf, Markup } = require("telegraf");
 const axios = require("axios");
 const bot = new Telegraf(process.env.BOT_TOKEN);
+const http = require("http");
 
 const faqAnswers = {
     "faq_1": "Ми створюємо сайти для забудовників: лендинги, багатосторінкові сайти ЖК, корпоративні сайти, сайти з інтерактивними картами.",
@@ -276,3 +277,11 @@ bot.launch().then(() => console.log("Бот запущено ✅"));
 
 process.once("SIGINT", () => bot.stop("SIGINT"));
 process.once("SIGTERM", () => bot.stop("SIGTERM"));
+
+const PORT = process.env.PORT || 8080;
+http.createServer((req, res) => {
+    res.writeHead(200, { 'Content-Type': 'text/plain' });
+    res.end('Server is running\n');
+}).listen(PORT, () => {
+    console.log(`Server is running on port ${PORT}`);
+});
