@@ -23,23 +23,6 @@ const auditMenu = Markup.inlineKeyboard([
     [Markup.button.callback("⬅️ Назад до головного меню", "main_menu")]
 ]);
 
-bot.on("text", async (ctx) => {
-    const userId = ctx.from.id;
-    const username = ctx.from.username || "Анонім";
-    const text = ctx.message.text;
-
-    await sendMessageToKommo(userId, username, text);
-    await ctx.reply("✅ Ваше повідомлення передано менеджеру!");
-});
-
-bot.action("order_audit", async (ctx) => {
-    try {
-        await ctx.telegram.sendMessage(ctx.chat.id, "Замовлення на безкоштовний аудит");
-    } catch (error) {
-        console.error("Помилка при відправці повідомлення:", error);
-    }
-});
-
 bot.start(async (ctx) => {
     try {
         const message = await ctx.reply(
@@ -51,6 +34,25 @@ bot.start(async (ctx) => {
         console.error("Помилка відправки стартового повідомлення:", error);
     }
 });
+
+bot.on("text", async (ctx) => {
+    const userId = ctx.from.id;
+    const username = ctx.from.username || "Анонім";
+    const text = ctx.message.text;
+
+    await sendMessageToKommo(userId, username, text); // Відправляємо в Kommo CRM Inbox
+    await ctx.reply("✅ Ваше повідомлення передано менеджеру!");
+});
+
+bot.action("order_audit", async (ctx) => {
+    try {
+        await ctx.telegram.sendMessage(ctx.chat.id, "Замовлення на безкоштовний аудит");
+    } catch (error) {
+        console.error("Помилка при відправці повідомлення:", error);
+    }
+});
+
+
 
 function createSubMenu(text, backAction) {
     return Markup.inlineKeyboard([

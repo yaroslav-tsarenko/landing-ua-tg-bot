@@ -1,5 +1,5 @@
 const bot = require("../telegramBot");
-
+const axios = require("axios");
 async function handleTelegramWebhook(req, res) {
     try {
         await bot.handleUpdate(req.body);
@@ -12,8 +12,18 @@ async function handleTelegramWebhook(req, res) {
 
 async function handleKommoReply(req, res) {
     try {
-        const { telegram_id, message } = req.body;
-        if (!telegram_id || !message) return res.status(400).send("Invalid data");
+        const { contact_id, message } = req.body;
+        if (!contact_id || !message) return res.status(400).send("Invalid data");
+
+        const contactData = await axios.get(`https://tresortech.kommo.com/api/v4/contacts/${contact_id}`, {
+            headers: {
+                Authorization: `Bearer ${process.env.KOMMO_TOKEN}`,
+                "Content-Type": "application/json"
+            }
+        });
+
+        const telegram_id = contactData.data.custom_fields_values.find(f => f.field_name === "Telegram ID")?.values[0]?.value;
+        if (!telegram_id) return res.status(404).send("Telegram ID not found");
 
         await bot.telegram.sendMessage(telegram_id, message);
         res.send("Message sent to Telegram");
@@ -22,5 +32,6 @@ async function handleKommoReply(req, res) {
         res.status(500).send("Error");
     }
 }
+
 
 module.exports = { handleTelegramWebhook, handleKommoReply };
