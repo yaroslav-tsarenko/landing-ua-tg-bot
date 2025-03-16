@@ -1,6 +1,6 @@
 require("dotenv").config();
 const { Telegraf, Markup } = require("telegraf");
-const sendMessageToKommo = require("./services/kommoService");
+const { sendMessageToKommo } = require("./services/kommoService");
 const bot = new Telegraf(process.env.BOT_TOKEN);
 
 const mainMenu = Markup.inlineKeyboard([
