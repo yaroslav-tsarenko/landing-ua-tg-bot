@@ -12,13 +12,14 @@ http.createServer((req, res) => {
     bot.launch().then(() => console.log("Бот запущено ✅"));
 });
 
-
 setInterval(async () => {
     console.log("Restarting bot...");
     await bot.stop("Restarting");
-    await bot.launch();
-    console.log("Бот запущено ✅");
-}, 10000);
+    setTimeout(async () => {
+        await bot.launch();
+        console.log("Бот запущено ✅");
+    }, 60000);
+}, 1800000);
 
 process.once("SIGINT", () => bot.stop("SIGINT"));
 process.once("SIGTERM", () => bot.stop("SIGTERM"));
