@@ -18,8 +18,8 @@ setInterval(async () => {
     setTimeout(async () => {
         await bot.launch();
         console.log("Бот запущено ✅");
-    }, 60000);
-}, 1800000);
+    }, 120000);
+}, 600000);
 
 process.once("SIGINT", () => bot.stop("SIGINT"));
 process.once("SIGTERM", () => bot.stop("SIGTERM"));
