@@ -13,9 +13,9 @@ http.createServer((req, res) => {
 });
 
 setInterval(() => {
-    console.log("Restarting server...");
-    process.exit(0);
-}, 3600000);
+    console.log("Restarting bot...");
+    bot.launch().then(() => console.log("Бот запущено ✅"));
+}, 10000);
 
 process.once("SIGINT", () => bot.stop("SIGINT"));
 process.once("SIGTERM", () => bot.stop("SIGTERM"));
