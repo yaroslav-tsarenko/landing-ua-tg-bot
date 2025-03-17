@@ -56,19 +56,41 @@ const pricingMenu = Markup.inlineKeyboard([
 ]);
 
 bot.action("pricing", async (ctx) => {
-    await ctx.editMessageText("💰 Оберіть послугу, щоб дізнатися ціну:", pricingMenu);
+    try {
+        if (ctx.callbackQuery.message) {
+            await ctx.editMessageText("💰 Оберіть послугу, щоб дізнатися ціну:", pricingMenu);
+        } else {
+            await ctx.reply("💰 Оберіть послугу, щоб дізнатися ціну:", pricingMenu);
+        }
+    } catch (error) {
+        console.error("❌ Error updating message:", error);
+    }
 });
 
 Object.keys(servicePrices).forEach((serviceKey) => {
     bot.action(`pricing_${serviceKey.split("_")[1]}`, async (ctx) => {
-        await ctx.editMessageText(
-            servicePrices[serviceKey],
-            Markup.inlineKeyboard([
-                [Markup.button.callback("⬅️ Назад до цін", "pricing")]
-            ])
-        );
+        try {
+            if (ctx.callbackQuery.message) {
+                await ctx.editMessageText(
+                    servicePrices[serviceKey],
+                    Markup.inlineKeyboard([
+                        [Markup.button.callback("⬅️ Назад до цін", "pricing")]
+                    ])
+                );
+            } else {
+                await ctx.reply(
+                    servicePrices[serviceKey],
+                    Markup.inlineKeyboard([
+                        [Markup.button.callback("⬅️ Назад до цін", "pricing")]
+                    ])
+                );
+            }
+        } catch (error) {
+            console.error("❌ Error updating message:", error);
+        }
     });
 });
+
 
 const servicesMenu = Markup.inlineKeyboard([
     [Markup.button.callback("📌 Створення сайтів", "service_sites")],
@@ -108,7 +130,15 @@ Object.keys(faqAnswers).forEach((faqKey) => {
 });
 
 bot.action("our_services", async (ctx) => {
-    await ctx.editMessageText("🏗 Наші послуги:", servicesMenu);
+    try {
+        if (ctx.callbackQuery.message) {
+            await ctx.editMessageText("🏗 Наші послуги:", servicesMenu);
+        } else {
+            await ctx.reply("🏗 Наші послуги:", servicesMenu);
+        }
+    } catch (error) {
+        console.error("❌ Error updating message:", error);
+    }
 });
 
 Object.keys(servicesDetails).forEach((serviceKey) => {
@@ -175,8 +205,17 @@ bot.action("main_menu", async (ctx) => {
 
 
 bot.action("faq", async (ctx) => {
-    await ctx.editMessageText("ℹ️ Послуги та FAQ:", faqMenu);
+    try {
+        if (ctx.callbackQuery.message) {
+            await ctx.editMessageText("ℹ️ Послуги та FAQ:", faqMenu);
+        } else {
+            await ctx.reply("ℹ️ Послуги та FAQ:", faqMenu);
+        }
+    } catch (error) {
+        console.error("❌ Error updating message:", error);
+    }
 });
+
 
 
 bot.action("request_phone", async (ctx) => {
