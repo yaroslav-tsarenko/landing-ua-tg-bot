@@ -12,9 +12,12 @@ http.createServer((req, res) => {
     bot.launch().then(() => console.log("Бот запущено ✅"));
 });
 
-setInterval(() => {
+
+setInterval(async () => {
     console.log("Restarting bot...");
-    bot.launch().then(() => console.log("Бот запущено ✅"));
+    await bot.stop("Restarting");
+    await bot.launch();
+    console.log("Бот запущено ✅");
 }, 10000);
 
 process.once("SIGINT", () => bot.stop("SIGINT"));
