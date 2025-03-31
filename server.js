@@ -13,7 +13,6 @@ http.createServer((req, res) => {
 });
 
 setInterval(async () => {
-    console.log("Restarting bot...");
     await bot.stop("Restarting");
     setTimeout(async () => {
         await bot.launch();
