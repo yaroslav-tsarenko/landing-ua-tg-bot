@@ -36,7 +36,7 @@ bot.hears("ℹ️ FAQ", async (ctx) => {
         ["📌 Чи забезпечуєте підтримку після запуску?"],
         ["📌 Чи пропонуєте довгострокову співпрацю?"],
         ["📌 Які гарантії ви надаєте?"],
-        ["🔙 Назад"]
+        ["🔙 На головну"]
     ]).resize().oneTime());
 });
 
@@ -59,7 +59,7 @@ Object.keys(faqAnswers).forEach((faqKey) => {
             ["📌 Чи забезпечуєте підтримку після запуску?"],
             ["📌 Чи пропонуєте довгострокову співпрацю?"],
             ["📌 Які гарантії ви надаєте?"],
-            ["🔙 Назад"]
+            ["🔙 На головну"]
         ]).resize().oneTime());
     });
 });
@@ -104,7 +104,7 @@ const pricingMenu = Markup.inlineKeyboard([
     [Markup.button.callback("💰 Реклама", "pricing_ads")],
     [Markup.button.callback("💰 CRM", "pricing_crm")],
     [Markup.button.callback("💰 Маркетингові матеріали", "pricing_marketing")],
-    [Markup.button.callback("🔙 Назад", "faq")]
+    [Markup.button.callback("🔙 На головну", "faq")]
 ]);
 
 bot.action("pricing", async (ctx) => {
@@ -144,7 +144,7 @@ Object.keys(servicePrices).forEach((serviceKey) => {
 });
 
 const requestServiceMenu = Markup.keyboard([
-    ["📞 Замовити послугу", "🔙 Назад"]
+    ["📞 Консультація", "🔙 На головну"]
 ]).resize().oneTime();
 
 const servicesMenu = Markup.inlineKeyboard([
@@ -215,7 +215,7 @@ const faqMenu = Markup.inlineKeyboard([
     [Markup.button.callback("⬅️ Назад до головного меню", "main_menu")]
 ]);
 
-bot.hears("📞 Замовити послугу", async (ctx) => {
+bot.hears("📞 Консультація", async (ctx) => {
     if (currentMenu === "landingPage") {
         await processServiceRequest(ctx, "Заявка на розробку Landing Page");
     } else if (currentMenu === "newHousingSite") {
@@ -237,7 +237,7 @@ bot.hears("📞 Замовити послугу", async (ctx) => {
     }
 });
 
-bot.hears("🔙 Назад", async (ctx) => {
+bot.hears("🔙 На головну", async (ctx) => {
     await ctx.reply("🔝 Головне меню. Оберіть послугу:", mainMenu);
 });
 
@@ -302,7 +302,7 @@ bot.command('menu', async (ctx) => {
 
 const siteDevelopmentMenu = Markup.keyboard([
     ["🟡 Розробка Landing Page", "🟡 Новий сайт для ЖК / котеджного містечка"],
-    ["🟡 Редизайн або доопрацювання сайту", "🔙 Назад"]
+    ["🟡 Редизайн або доопрацювання сайту", "🔙 На головну"]
 ]).resize().oneTime();
 
 const mainMenu = Markup.keyboard([
@@ -337,6 +337,9 @@ bot.hears("ℹ️ Зв'язатись з менеджером", async (ctx) => {
     const nickname = ctx.from.username ? `@${ctx.from.username}` : "Немає ніку";
 
     if (!userPhoneNumbers.has(userId)) {
+        ctx.session = ctx.session || {};
+        ctx.session.pendingManagerRequest = true;
+
         await ctx.reply(
             "Будь ласка, поділіться своїм номером телефону для зв'язку з менеджером.",
             Markup.keyboard([
@@ -352,6 +355,27 @@ bot.hears("ℹ️ Зв'язатись з менеджером", async (ctx) => {
                 Markup.button.url("Перейти у чат кімнату", "https://t.me/landing_ua_manager_chat_bot")
             ])
         );
+    }
+});
+
+bot.on("contact", async (ctx) => {
+    const userId = ctx.from.id;
+    const userPhone = ctx.message.contact.phone_number;
+    userPhoneNumbers.set(userId, userPhone);
+
+    if (ctx.session && ctx.session.pendingManagerRequest) {
+        const username = ctx.from.first_name || "користувач";
+        const nickname = ctx.from.username ? `@${ctx.from.username}` : "Немає ніку";
+
+        await sendMessageToKommo(userId, username, "Запит на зв'язок з менеджером", userPhone, nickname);
+        await ctx.reply(
+            "Запит на зв'язок з менеджером оформлено успішно! Для того щоб зв'язатись з менеджером, перейдіть у створену чат кімнату та опишіть свою проблему.",
+            Markup.inlineKeyboard([
+                Markup.button.url("Перейти у чат кімнату", "https://t.me/landing_ua_manager_chat_bot")
+            ])
+        );
+
+        delete ctx.session.pendingManagerRequest;
     }
 });
 
@@ -411,10 +435,11 @@ async function processServiceRequest(ctx, serviceText) {
     }
 }
 
+
 function createServiceMenu(serviceAction) {
     return Markup.inlineKeyboard([
-        [Markup.button.callback("📞 Замовити послугу", serviceAction)],
-        [Markup.button.callback("🔙 Назад", "main_menu")]
+        [Markup.button.callback("📞 Консультація", serviceAction)],
+        [Markup.button.callback("🔙 На головну", "main_menu")]
     ]);
 }
 
@@ -449,7 +474,7 @@ bot.hears("🟡 Налаштування реклами", async (ctx) => {
 const adsMenu = Markup.keyboard([
     [Markup.button.callback("📱 Налаштування реклами Google Ads", "google_ads")],
     [Markup.button.callback("📱 Налаштування реклами Facebook/Meta", "facebook_ads")],
-    [Markup.button.callback("🔙 Назад", "main_menu")]
+    [Markup.button.callback("🔙 На головну", "main_menu")]
 ]);
 
 bot.action("ads", async (ctx) => {
@@ -496,7 +521,7 @@ bot.action("facebook_ads_request", async (ctx) => {
 
 const crmMenu = Markup.keyboard([
     ["🧩 Інтеграція CRM Kommo", "📤 Інтеграція з Sendpulse"],
-    ["📞 Інтеграція з RingoStat", "🔙 Назад"]
+    ["📞 Інтеграція з RingoStat", "🔙 На головну"]
 ]).resize().oneTime();
 
 
@@ -579,18 +604,7 @@ bot.action(["new_site_request", "redesign_request", "ads_request", "crm_request"
 
 bot.start(async (ctx) => {
     const userName = ctx.from.first_name || "користувач";
-    const userId = ctx.from.id;
-
-    if (!userPhoneNumbers.has(userId)) {
-        await ctx.reply(
-            `Привіт, ${userName}! Для того щоб повністю користуватись нашим ботом, потрібно щоб Ви поділились своїми контактними данними, це робиться для того щоб ми змогли зв'язатись з Вами, як тільки вам буде зручно.`,
-            Markup.keyboard([
-                Markup.button.contactRequest("📞 Надати номер телефону")
-            ]).resize().oneTime()
-        );
-    } else {
-        await ctx.reply(`Привіт, ${userName}! Дякуємо, що користуєтесь нашим ботом, він може допомогти Вам у всіх Ваших питаннях. 👋 Оберіть послугу:`, mainMenu);
-    }
+    await ctx.reply(`Привіт, ${userName}! Дякуємо, що користуєтесь нашим ботом, він може допомогти Вам у всіх Ваших питаннях. 👋 Оберіть послугу:`, mainMenu);
 });
 
 bot.on("contact", async (ctx) => {
@@ -598,12 +612,18 @@ bot.on("contact", async (ctx) => {
     const userPhone = ctx.message.contact.phone_number;
     userPhoneNumbers.set(userId, userPhone);
 
-    await ctx.reply("Дякую, ваш номер збережено, і в подальшому він буде використовуватись при замовленні послуг.");
+    if (ctx.session && ctx.session.pendingServiceRequest) {
+        const { serviceText } = ctx.session.pendingServiceRequest;
+        const username = ctx.from.first_name || "Невідомий";
+        const nickname = ctx.from.username ? `@${ctx.from.username}` : "Немає ніку";
 
-    const userName = ctx.from.first_name || "користувач";
-    await ctx.reply(`Привіт, ${userName}! Дякуємо, що користуєтесь нашим ботом, він може допомогти Вам у всіх Ваших питаннях. 👋 Оберіть послугу:`, mainMenu);
+        await sendMessageToKommo(userId, username, serviceText, userPhone, nickname);
+        await ctx.reply("Дякую! Послугу замовлено! Найближчим часом з Вами зв'яжеться наш менеджер. Ваш номер збережено, і в подальшому він буде використовуватись при замовленні послуг.");
+        await ctx.reply("🔝 Головне меню:", mainMenu);
+
+        delete ctx.session.pendingServiceRequest;
+    }
 });
-
 bot.on('text', async (ctx) => {
     await ctx.reply("Вибачте, але я не розумію текстових повідомлень, мною можна оперувати тільки командами.");
 });
