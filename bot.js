@@ -1,5 +1,5 @@
 require("dotenv").config();
-const { Telegraf, Markup } = require("telegraf");
+const {Telegraf, Markup, session} = require("telegraf");
 const axios = require("axios");
 
 const bot = new Telegraf(process.env.BOT_TOKEN);
@@ -9,18 +9,60 @@ bot.catch((err, ctx) => {
     ctx.reply("⚠️ Виникла помилка. Спробуйте ще раз.");
 });
 
+bot.use(session());
+
+let currentMenu = "";
 
 const faqAnswers = {
-    "faq_1": "Ми створюємо сайти для забудовників: лендинги, багатосторінкові сайти ЖК, корпоративні сайти, сайти з інтерактивними картами.",
-    "faq_2": "Так, ми допоможемо з написанням SEO-текстів, підбором та обробкою візуальних матеріалів, інтеграцією контенту.",
-    "faq_3": "Так, ми створюємо шахматки на основі 3D-візуалізації та підключаємо їх до CRM.",
-    "faq_4": "Так, ми інтегруємо CRM для забудовників, що дозволяє керувати продажами, заявками та статусами об'єктів.",
-    "faq_5": "Так, ми створюємо буклети, банери, рекламні макети, презентації для соціальних мереж та друку.",
-    "faq_6": "Лендинг займає 2-3 тижні, повноцінний сайт ЖК – 4-6 тижнів, складні проекти – до 8 тижнів.",
-    "faq_7": "Ми надаємо технічну підтримку, оновлення контенту, а також довгострокову співпрацю з фіксованою оплатою.",
-    "faq_8": "Так, ви можете підписатися на підтримку, розробку або маркетинг з щомісячною оплатою.",
-    "faq_9": "Ми гарантуємо стабільність роботи сайту, усунення технічних проблем у гарантійний період та консультації після завершення проекту."
+    "📌 Які типи сайтів ви створюєте?": "Ми створюємо сайти для забудовників: лендинги, багатосторінкові сайти ЖК, корпоративні сайти, сайти з інтерактивними картами.",
+    "📌 Чи допоможете з наповненням сайту?": "Так, ми допоможемо з написанням SEO-текстів, підбором та обробкою візуальних матеріалів, інтеграцією контенту.",
+    "📌 Чи можете допомогти зі створенням шахматки?": "Так, ми створюємо шахматки на основі 3D-візуалізації та підключаємо їх до CRM.",
+    "📌 Чи надаєте послуги інтеграції CRM?": "Так, ми інтегруємо CRM для забудовників, що дозволяє керувати продажами, заявками та статусами об'єктів.",
+    "📌 Чи створюєте маркетингові матеріали?": "Так, ми створюємо буклети, банери, рекламні макети, презентації для соціальних мереж та друку.",
+    "📌 Як довго триває створення сайту?": "Лендинг займає 2-3 тижні, повноцінний сайт ЖК – 4-6 тижнів, складні проекти – до 8 тижнів.",
+    "📌 Чи забезпечуєте підтримку після запуску?": "Ми надаємо технічну підтримку, оновлення контенту, а також довгострокову співпрацю з фіксованою оплатою.",
+    "📌 Чи пропонуєте довгострокову співпрацю?": "Так, ви можете підписатися на підтримку, розробку або маркетинг з щомісячною оплатою.",
+    "📌 Які гарантії ви надаєте?": "Ми гарантуємо стабільність роботи сайту, усунення технічних проблем у гарантійний період та консультації після завершення проекту."
 };
+
+bot.hears("ℹ️ FAQ", async (ctx) => {
+    await ctx.reply("❓ Часті запитання (FAQ):", Markup.keyboard([
+        ["📌 Які типи сайтів ви створюєте?"],
+        ["📌 Чи допоможете з наповненням сайту?"],
+        ["📌 Чи можете допомогти зі створенням шахматки?"],
+        ["📌 Чи надаєте послуги інтеграції CRM?"],
+        ["📌 Чи створюєте маркетингові матеріали?"],
+        ["📌 Як довго триває створення сайту?"],
+        ["📌 Чи забезпечуєте підтримку після запуску?"],
+        ["📌 Чи пропонуєте довгострокову співпрацю?"],
+        ["📌 Які гарантії ви надаєте?"],
+        ["🔙 Назад"]
+    ]).resize().oneTime());
+});
+
+
+
+bot.command('menu', async (ctx) => {
+    await ctx.reply("🔝 Головне меню. Оберіть послугу:", mainMenu);
+});
+
+Object.keys(faqAnswers).forEach((faqKey) => {
+    bot.hears(faqKey, async (ctx) => {
+        await ctx.reply(faqAnswers[faqKey]);
+        await ctx.reply("Яке ще питання Вас цікавить?", Markup.keyboard([
+            ["📌 Які типи сайтів ви створюєте?"],
+            ["📌 Чи допоможете з наповненням сайту?"],
+            ["📌 Чи можете допомогти зі створенням шахматки?"],
+            ["📌 Чи надаєте послуги інтеграції CRM?"],
+            ["📌 Чи створюєте маркетингові матеріали?"],
+            ["📌 Як довго триває створення сайту?"],
+            ["📌 Чи забезпечуєте підтримку після запуску?"],
+            ["📌 Чи пропонуєте довгострокову співпрацю?"],
+            ["📌 Які гарантії ви надаєте?"],
+            ["🔙 Назад"]
+        ]).resize().oneTime());
+    });
+});
 
 const servicesDetails = {
     "service_sites": "Ми створюємо веб-сайти: лендинги, багатосторінкові сайти ЖК, корпоративні сайти, сайти з інтерактивними картами.",
@@ -62,7 +104,7 @@ const pricingMenu = Markup.inlineKeyboard([
     [Markup.button.callback("💰 Реклама", "pricing_ads")],
     [Markup.button.callback("💰 CRM", "pricing_crm")],
     [Markup.button.callback("💰 Маркетингові матеріали", "pricing_marketing")],
-    [Markup.button.callback("⬅️ Повернутись назад", "faq")]
+    [Markup.button.callback("🔙 Назад", "faq")]
 ]);
 
 bot.action("pricing", async (ctx) => {
@@ -101,20 +143,9 @@ Object.keys(servicePrices).forEach((serviceKey) => {
     });
 });
 
-const crmKommoMenu = Markup.inlineKeyboard([
-    [Markup.button.callback("📞 Замовити послугу", "crm_kommo_request")],
-    [Markup.button.callback("⬅️ Назад до інтеграцій", "crm")]
-]);
-
-const sendpulseMenu = Markup.inlineKeyboard([
-    [Markup.button.callback("📞 Замовити послугу", "sendpulse_request")],
-    [Markup.button.callback("⬅️ Назад до інтеграцій", "crm")]
-]);
-
-const ringostatMenu = Markup.inlineKeyboard([
-    [Markup.button.callback("📞 Замовити послугу", "ringostat_request")],
-    [Markup.button.callback("⬅️ Назад до інтеграцій", "crm")]
-]);
+const requestServiceMenu = Markup.keyboard([
+    ["📞 Замовити послугу", "🔙 Назад"]
+]).resize().oneTime();
 
 const servicesMenu = Markup.inlineKeyboard([
     [Markup.button.callback("📌 Створення сайтів", "service_sites")],
@@ -184,23 +215,35 @@ const faqMenu = Markup.inlineKeyboard([
     [Markup.button.callback("⬅️ Назад до головного меню", "main_menu")]
 ]);
 
-const landingPageMenu = Markup.inlineKeyboard([
-    [Markup.button.callback("📞 Залишити заявку", "landing_page_request")],
-    [Markup.button.callback("🔙 Назад до меню", "site_development_menu")]
-]);
+bot.hears("📞 Замовити послугу", async (ctx) => {
+    if (currentMenu === "landingPage") {
+        await processServiceRequest(ctx, "Заявка на розробку Landing Page");
+    } else if (currentMenu === "newHousingSite") {
+        await processServiceRequest(ctx, "Комплексна розробка сайту під ключ");
+    } else if (currentMenu === "siteRedesign") {
+        await processServiceRequest(ctx, "Редизайн або доопрацювання сайту");
+    } else if (currentMenu === "googleAds") {
+        await processServiceRequest(ctx, "Налаштування реклами Google Ads");
+    } else if (currentMenu === "facebookAds") {
+        await processServiceRequest(ctx, "Налаштування реклами Facebook/Meta");
+    } else if (currentMenu === "ringoStat") {
+        await processServiceRequest(ctx, "Інтеграція з RingoStat");
+    } else if (currentMenu === "sendPulse") {
+        await processServiceRequest(ctx, "Інтеграція з Sendpulse");
+    } else if (currentMenu === "crmKommo") {
+        await processServiceRequest(ctx, "Інтеграція CRM Kommo");
+    } else if (currentMenu === "audit") {
+        await processServiceRequest(ctx, "Замовлення безкоштовного аудиту сайту");
+    }
+});
 
-const newHousingSiteMenu = Markup.inlineKeyboard([
-    [Markup.button.callback("📞 Залишити заявку", "new_housing_site_request")],
-    [Markup.button.callback("🔙 Назад до меню", "site_development_menu")]
-]);
+bot.hears("🔙 Назад", async (ctx) => {
+    await ctx.reply("🔝 Головне меню. Оберіть послугу:", mainMenu);
+});
 
-const siteRedesignMenu = Markup.inlineKeyboard([
-    [Markup.button.callback("📞 Залишити заявку", "site_redesign_request")],
-    [Markup.button.callback("🔙 Назад до меню", "site_development_menu")]
-]);
-
-bot.action("landing_page", async (ctx) => {
-    await ctx.editMessageText(
+bot.hears("🟡 Розробка Landing Page", async (ctx) => {
+    currentMenu = "landingPage";
+    await ctx.reply(
         "📄 Створюємо ефективні Landing Page для запуску реклами та збору лідів:\n" +
         "- Аналізуємо конкурентів і ваш об'єкт на ринку\n" +
         "- Пропрацьовуємо всі тексти і структуру (UX)\n" +
@@ -212,12 +255,13 @@ bot.action("landing_page", async (ctx) => {
         "💵 Орієнтовна вартість: від $1,500\n" +
         "📅 Термін: 3 тижні\n" +
         "📌 Остаточна вартість залежить від контенту та складності",
-        landingPageMenu
+        requestServiceMenu
     );
 });
 
-bot.action("new_housing_site", async (ctx) => {
-    await ctx.editMessageText(
+bot.hears("🟡 Новий сайт для ЖК / котеджного містечка", async (ctx) => {
+    currentMenu = "newHousingSite";
+    await ctx.reply(
         "🏗 Комплексна розробка сайту під ключ:\n" +
         "- Аналіз конкурентів, УТП, планування структури сайту\n" +
         "- Написання текстів, що продають, з урахуванням цільової аудиторії\n" +
@@ -228,12 +272,13 @@ bot.action("new_housing_site", async (ctx) => {
         "💵 Орієнтовна вартість: від $3,500\n" +
         "📅 Термін: 4–5 тижнів\n" +
         "📌 Остаточна ціна визначається після консультації та брифінгу",
-        newHousingSiteMenu
+        requestServiceMenu
     );
 });
 
-bot.action("site_redesign", async (ctx) => {
-    await ctx.editMessageText(
+bot.hears("🟡 Редизайн або доопрацювання сайту", async (ctx) => {
+    currentMenu = "siteRedesign";
+    await ctx.reply(
         "🔁 Повне оновлення сайту з урахуванням сучасних стандартів:\n" +
         "- Аналіз поточного сайту, UX-аудит, виявлення слабких місць\n" +
         "- Розробка нової структури та логіки взаємодії\n" +
@@ -242,65 +287,34 @@ bot.action("site_redesign", async (ctx) => {
         "- Впровадження нових функцій, блоків, форм\n\n" +
         "💵 Орієнтовна вартість: від $2,500\n" +
         "📌 Остаточна ціна визначається після аудиту сайту та обговорення задач",
-        siteRedesignMenu
+        requestServiceMenu
     );
 });
 
-const siteDevelopmentMenu = Markup.inlineKeyboard([
-    [Markup.button.callback("🟡 Розробка Landing Page", "landing_page")],
-    [Markup.button.callback("🟡 Новий сайт для ЖК / котеджного містечка", "new_housing_site")],
-    [Markup.button.callback("🟡 Редизайн або доопрацювання сайту", "site_redesign")],
-    [Markup.button.callback("🔙 Назад до меню", "main_menu")]
+bot.telegram.setMyCommands([
+    { command: 'start', description: 'Почати' },
+    { command: 'menu', description: 'Головне меню' }
 ]);
 
-const mainMenu = Markup.inlineKeyboard([
-    [Markup.button.callback("🟡 Розробка сайтів", "new_site")],
-    [Markup.button.callback("🟡 Налаштування реклами", "ads")],
-    [Markup.button.callback("🟡 Інтеграції: CRM, шахматка, автоматизація", "crm")],
-    [Markup.button.callback("🟡 Безкоштовний аудит сайту / реклами", "audit")],
-    [Markup.button.callback("ℹ️ FAQ", "frequent_questions")],
-    [Markup.button.callback("ℹ️ Зв'язатись з менеджером", "request_phone")],
-]);
+bot.command('menu', async (ctx) => {
+    await ctx.reply("🔝 Головне меню. Оберіть послугу:", mainMenu);
+});
 
-const googleAdsMenu = Markup.inlineKeyboard([
-    [Markup.button.callback("📞 Замовити послугу", "google_ads_request")],
-    [Markup.button.callback("⬅️ Назад до налаштування реклами", "ads")]
-]);
+const siteDevelopmentMenu = Markup.keyboard([
+    ["🟡 Розробка Landing Page", "🟡 Новий сайт для ЖК / котеджного містечка"],
+    ["🟡 Редизайн або доопрацювання сайту", "🔙 Назад"]
+]).resize().oneTime();
 
-const facebookAdsMenu = Markup.inlineKeyboard([
-    [Markup.button.callback("📞 Замовити послугу", "facebook_ads_request")],
-    [Markup.button.callback("⬅️ Назад до налаштування реклами", "ads")]
-]);
-
-async function sendMessageToKommo(userId, username, text, phone, nickname) {
-    try {
-        await axios.post(`https://tresortech.kommo.com/api/v4/leads`, [
-            {
-                name: `${text} ${username} (${nickname}) з телефоном ${phone}, ID в Telegram: ${userId}`,
-                contacts: [
-                    {
-                        first_name: username,
-                        custom_fields_values: [
-                            { field_name: "Telegram ID", values: [{ value: userId }] },
-                            { field_name: "Повідомлення", values: [{ value: text }] }
-                        ]
-                    }
-                ]
-            }
-        ], {
-            headers: {
-                Authorization: `Bearer ${process.env.KOMMO_AUTH_TOKEN}`,
-                "Content-Type": "application/json"
-            }
-        });
-    } catch (error) {
-        console.error("❌ Помилка при відправці в Kommo:", error);
-    }
-}
+const mainMenu = Markup.keyboard([
+    ["🟡 Розробка сайтів", "🟡 Налаштування реклами"],
+    ["🟡 Інтеграції: CRM, шахматка, автоматизація"],
+    ["🟡 Безкоштовний аудит сайту / реклами"],
+    ["ℹ️ FAQ", "ℹ️ Зв'язатись з менеджером"]
+]).resize().oneTime();
 
 bot.action("main_menu", async (ctx) => {
     await ctx.editMessageText(
-        "🔝 Головне меню. Оберіть послугу:",
+        "Головне меню. Оберіть послугу:",
         mainMenu
     );
 });
@@ -317,8 +331,11 @@ bot.action("faq", async (ctx) => {
     }
 });
 
-bot.action("request_phone", async (ctx) => {
+bot.hears("ℹ️ Зв'язатись з менеджером", async (ctx) => {
     const userId = ctx.from.id;
+    const username = ctx.from.first_name || "користувач";
+    const nickname = ctx.from.username ? `@${ctx.from.username}` : "Немає ніку";
+
     if (!userPhoneNumbers.has(userId)) {
         await ctx.reply(
             "Будь ласка, поділіться своїм номером телефону для зв'язку з менеджером.",
@@ -327,6 +344,8 @@ bot.action("request_phone", async (ctx) => {
             ]).resize().oneTime()
         );
     } else {
+        const phone = userPhoneNumbers.get(userId);
+        await sendMessageToKommo(userId, username, "Запит на зв'язок з менеджером", phone, nickname);
         await ctx.reply(
             "Запит на зв'язок з менеджером оформлено успішно! Для того щоб зв'язатись з менеджером, перейдіть у створену чат кімнату та опишіть свою проблему.",
             Markup.inlineKeyboard([
@@ -336,12 +355,46 @@ bot.action("request_phone", async (ctx) => {
     }
 });
 
+async function sendMessageToKommo(userId, username, text, phone, nickname) {
+    try {
+        const leadName = `Новий запит з телеграм бота на ${text} ${nickname} ${phone} від ${username} `;
+
+        await axios.post('https://tresortech.kommo.com/api/v4/leads', [
+            {
+                name: leadName,
+                pipeline_id: 10647283,
+                contacts: [
+                    {
+                        first_name: username,
+                        custom_fields_values: [
+                            { field_id: 1051230, values: [{ value: userId }] },
+                            { field_id: 1051232, values: [{ value: text }] },
+                            { field_id: 1051004, values: [{ value: username }] },
+                            { field_id: 1051006, values: [{ value: phone }] }
+                        ]
+                    }
+                ]
+            }
+        ], {
+            headers: {
+                Authorization: `Bearer ${process.env.KOMMO_AUTH_TOKEN}`,
+                "Content-Type": "application/json"
+            }
+        });
+
+        console.log('✅ Lead saved successfully');
+    } catch (error) {
+        console.error("❌ Помилка при відправці в Kommo або збереженні:", JSON.stringify(error?.response?.data || error.message, null, 2));
+    }
+}
 
 async function processServiceRequest(ctx, serviceText) {
     const userId = ctx.from.id;
-    const userPhone = userPhoneNumbers.get(userId);
+    const username = ctx.from.first_name || "Невідомий";
+    const nickname = ctx.from.username ? `@${ctx.from.username}` : "Немає ніку";
+    const phone = userPhoneNumbers.get(userId);
 
-    if (!userPhone) {
+    if (!phone) {
         ctx.session = ctx.session || {};
         ctx.session.pendingServiceRequest = { serviceText };
 
@@ -352,22 +405,21 @@ async function processServiceRequest(ctx, serviceText) {
             ]).resize().oneTime()
         );
     } else {
-        const userName = ctx.from.first_name || "Невідомий";
-        const userUsername = ctx.from.username ? `@${ctx.from.username}` : "Немає ніку";
-        await sendMessageToKommo(userId, userName, serviceText, userPhone, userUsername);
+        await sendMessageToKommo(userId, username, serviceText, phone, nickname);
         await ctx.reply("Дякую! Послугу замовлено! Найближчим часом з Вами зв'яжеться наш менеджер.");
+        await ctx.reply("🔝 Головне меню. Оберіть послугу:", mainMenu);
     }
 }
 
 function createServiceMenu(serviceAction) {
     return Markup.inlineKeyboard([
         [Markup.button.callback("📞 Замовити послугу", serviceAction)],
-        [Markup.button.callback("⬅️ Назад до Головного Меню", "main_menu")]
+        [Markup.button.callback("🔙 Назад", "main_menu")]
     ]);
 }
 
-bot.action("landing_page_request", async (ctx) => {
-    await processServiceRequest(ctx, "Розробка Landing Page");
+bot.hears("🟡 Розробка Landing Page", async (ctx) => {
+    await ctx.reply("Оберіть тип розробки Landing Page:", siteDevelopmentMenu);
 });
 
 bot.action("new_housing_site_request", async (ctx) => {
@@ -382,27 +434,31 @@ bot.action("site_development_menu", async (ctx) => {
     await ctx.editMessageText("Оберіть тип розробки сайту:", siteDevelopmentMenu);
 });
 
-bot.action("new_site", async (ctx) => {
-    await ctx.editMessageText("Оберіть тип розробки сайту:", siteDevelopmentMenu);
+bot.hears("🟡 Розробка сайтів", async (ctx) => {
+    await ctx.reply("Оберіть тип розробки сайту:", siteDevelopmentMenu);
 });
 
 bot.action("redesign", async (ctx) => {
     await ctx.editMessageText("🔹 Пропонуємо редизайн або доопрацювання вашого сайту для покращення конверсій та ефективності.", createServiceMenu("redesign_request"));
 });
 
-const adsMenu = Markup.inlineKeyboard([
+bot.hears("🟡 Налаштування реклами", async (ctx) => {
+    await ctx.reply("Оберіть тип налаштування реклами:", adsMenu);
+});
+
+const adsMenu = Markup.keyboard([
     [Markup.button.callback("📱 Налаштування реклами Google Ads", "google_ads")],
     [Markup.button.callback("📱 Налаштування реклами Facebook/Meta", "facebook_ads")],
-    [Markup.button.callback("⬅️ Назад до головного меню", "main_menu")]
+    [Markup.button.callback("🔙 Назад", "main_menu")]
 ]);
 
 bot.action("ads", async (ctx) => {
     await ctx.editMessageText("Оберіть тип налаштування реклами:", adsMenu);
 });
 
-
-bot.action("google_ads", async (ctx) => {
-    await ctx.editMessageText(
+bot.hears("📱 Налаштування реклами Google Ads", async (ctx) => {
+    currentMenu = "googleAds"
+    await ctx.reply(
         "🔎 Запускаємо ефективну рекламу в Google Ads:\n" +
         "- Стратегія: пошукові, банерні, ремаркетинг\n" +
         "- Ключові слова, структура кампаній\n" +
@@ -411,12 +467,13 @@ bot.action("google_ads", async (ctx) => {
         "- Регулярна звітність та оптимізація\n\n" +
         "💵 Вартість ведення: від $1,200/міс\n" +
         "📌 Остаточна ціна залежить від кількості кампаній і бюджету",
-        googleAdsMenu
+        requestServiceMenu
     );
 });
 
-bot.action("facebook_ads", async (ctx) => {
-    await ctx.editMessageText(
+bot.hears("📱 Налаштування реклами Facebook/Meta", async (ctx) => {
+    currentMenu = "facebookAds"
+    await ctx.reply(
         "📱 Запускаємо таргетовану рекламу для лідогенерації:\n" +
         "- Аналіз аудиторій: гео, інтереси, Lookalike\n" +
         "- Креативи (статичні, відео, анімації)\n" +
@@ -425,7 +482,7 @@ bot.action("facebook_ads", async (ctx) => {
         "- Постійна оптимізація результатів\n\n" +
         "💵 Вартість ведення: від $1,200/міс\n" +
         "📌 Залежить від кількості напрямків та бюджету",
-        facebookAdsMenu
+        requestServiceMenu
     );
 });
 
@@ -437,21 +494,19 @@ bot.action("facebook_ads_request", async (ctx) => {
     await processServiceRequest(ctx, "Налаштування реклами Facebook/Meta");
 });
 
-const crmMenu = Markup.inlineKeyboard([
-    [Markup.button.callback("🧩 Інтеграція CRM Kommo", "crm_kommo")],
-    [Markup.button.callback("📤 Інтеграція з Sendpulse", "sendpulse")],
-    [Markup.button.callback("📞 Інтеграція з RingoStat", "ringostat")],
-    [Markup.button.callback("⬅️ Назад до головного меню", "main_menu")]
-]);
+const crmMenu = Markup.keyboard([
+    ["🧩 Інтеграція CRM Kommo", "📤 Інтеграція з Sendpulse"],
+    ["📞 Інтеграція з RingoStat", "🔙 Назад"]
+]).resize().oneTime();
 
-bot.action("crm", async (ctx) => {
-    await ctx.editMessageText("Оберіть тип інтеграції:", crmMenu);
+
+bot.hears("🟡 Інтеграції: CRM, шахматка, автоматизація", async (ctx) => {
+    await ctx.reply("Оберіть тип інтеграції:", crmMenu);
 });
 
-
-
-bot.action("crm_kommo", async (ctx) => {
-    await ctx.editMessageText(
+bot.hears("🧩 Інтеграція CRM Kommo", async (ctx) => {
+    currentMenu = "crmKommo";
+    await ctx.reply(
         "🧩 Підключимо CRM Kommo:\n" +
         "- Впровадження воронки під забудовника\n" +
         "- Створення етапів продажу та аналітики\n" +
@@ -461,31 +516,33 @@ bot.action("crm_kommo", async (ctx) => {
         "- Навчання вашої команди роботі з CRM\n\n" +
         "💵 Вартість: від $1,500 (разовий платіж)\n" +
         "📌 Точна ціна залежить від складності сценаріїв",
-        crmKommoMenu
+        requestServiceMenu
     );
 });
 
-bot.action("sendpulse", async (ctx) => {
-    await ctx.editMessageText(
+bot.hears("📤 Інтеграція з Sendpulse", async (ctx) => {
+    currentMenu = "sendPulse";
+    await ctx.reply(
         "📤 Налаштуємо автоматичні листи, SMS, чат-ботів:\n" +
         "- Збір та передача лідів із сайту в базу\n" +
         "- Сценарії welcome-ланцюжків, нагадування\n" +
         "- Інтеграція із CRM та Telegram/Viber/email\n\n" +
         "💵 Вартість: від $1,200 (разовий платіж)\n" +
         "📌 Залежить від кількості каналів та глибини автоматизації",
-        sendpulseMenu
+        requestServiceMenu
     );
 });
 
-bot.action("ringostat", async (ctx) => {
-    await ctx.editMessageText(
+bot.hears("📞 Інтеграція з RingoStat", async (ctx) => {
+    currentMenu = "ringoStat";
+    await ctx.reply(
         "📞 Контроль дзвінків і ефективності реклами:\n" +
         "- Підключення calltracking та аналітики\n" +
         "- Інтеграція з CRM для фіксації всіх дзвінків\n" +
         "- Звіти по трафіку, запис розмов\n\n" +
         "💵 Вартість: від $800 (разовий платіж)\n" +
         "📌 В залежності від кількості номерів та інтеграцій",
-        ringostatMenu
+        requestServiceMenu
     );
 });
 
@@ -501,8 +558,12 @@ bot.action("ringostat_request", async (ctx) => {
     await processServiceRequest(ctx, "Інтеграція з RingoStat");
 });
 
-bot.action("audit", async (ctx) => {
-    await ctx.editMessageText("🔹 Проведемо безкоштовний аудит вашого сайту або рекламної кампанії та надамо рекомендації щодо покращення.", createServiceMenu("audit_request"));
+bot.hears("🟡 Безкоштовний аудит сайту / реклами", async (ctx) => {
+    currentMenu = "audit";
+    await ctx.reply(
+        "🔹 Проведемо безкоштовний аудит вашого сайту або рекламної кампанії та надамо рекомендації щодо покращення.",
+        requestServiceMenu
+    );
 });
 
 bot.action(["new_site_request", "redesign_request", "ads_request", "crm_request", "audit_request"], async (ctx) => {
@@ -541,6 +602,10 @@ bot.on("contact", async (ctx) => {
 
     const userName = ctx.from.first_name || "користувач";
     await ctx.reply(`Привіт, ${userName}! Дякуємо, що користуєтесь нашим ботом, він може допомогти Вам у всіх Ваших питаннях. 👋 Оберіть послугу:`, mainMenu);
+});
+
+bot.on('text', async (ctx) => {
+    await ctx.reply("Вибачте, але я не розумію текстових повідомлень, мною можна оперувати тільки командами.");
 });
 
 module.exports = bot;
